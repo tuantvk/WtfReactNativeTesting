@@ -23,13 +23,7 @@ describe('Button', () => {
   describe('onPress', () => {
     it('on submit login', () => {
 
-      const { queryByText, getByTestId } = render(
-        <Button />
-      );
-
-      fireEvent.press(getByTestId('btnLogin'));
-
-      expect(queryByText('Loading...')).not.toBeNull();
+     
     });
 
   })
