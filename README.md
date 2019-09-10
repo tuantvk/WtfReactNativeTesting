@@ -106,7 +106,7 @@ Finally, run yarn test and Jest will print this message:
 
 ```sh
 PASS  ./Sum.test.js
-:heavy_check_mark: adds 1 + 2 to equal 3 (5ms)
+✓ adds 1 + 2 to equal 3 (5ms)
 ```
 
 <p align="center">
@@ -155,3 +155,230 @@ describe('Hello', () => {
 ```
 
 Run test with `yarn test`
+
+
+## Testing Text and Props
+
+Create a file [PassingProps.js](src/PassingProps/PassingProps.js) and enter the following:
+
+```js
+import React from 'react';
+import {
+  View,
+  Text
+} from 'react-native';
+
+const PassingProps = ({ name, age = 30 }) => (
+  <View>
+    <Text testID="name">{`Hello, ${name}!`}</Text>
+    <Text testID="age">{`Age ${age}`}</Text>
+  </View>
+);
+
+export default PassingProps;
+```
+
+Let's test that it displays the right message when a name and age is passed in as a prop.
+If age `undefined` `default age = 30`
+Create a file [PassingProps.spec.js](src/PassingProps/PassingProps.spec.js) and add the following:
+
+```js
+import React from 'react';
+import { render } from 'react-native-testing-library';
+import PassingProps from './PassingProps';
+
+describe('PassingProps', () => {
+
+  it('displays the passed-in name', () => {
+    const { queryByText } = render(
+      <PassingProps name="Jinx" />
+    );
+    
+    expect(queryByText('Hello, Jinx!')).not.toBeNull();
+    expect(queryByText('Age 30')).not.toBeNull();
+  });
+
+  it('displays the passed-in age', () => {
+    const { queryByText } = render(
+      <PassingProps name="Jinx" age="25" />
+    );
+    expect(queryByText('Age 25')).not.toBeNull();
+  });
+  
+});
+```
+
+Here's what's going on:
+
+- `render()` renders the component to an in-memory representation that doesn't require environment.
+- `queryByText()` finds a child component that contains the passed-in text.
+- `expect()` creates a Jest expectation to check a condition. 
+- `not.toBeNull()` checks that the value is not null, which means that an element with that text was found.
+
+
+## Testing TextInput
+
+I have form [Login.js](src/Login/Login.js):
+
+```js
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+} from 'react-native';
+
+const Login = props => {
+
+  const [username, _setUsername] = useState('');
+  const [password, _setPassword] = useState('');
+  const [phone, _setPhone] = useState('');
+
+  _onSubmitLogin = () => {
+    // Do something...
+
+    const { login } = props;
+
+    if (login) {
+      login({ username, password });
+    }
+
+  }
+
+  return (
+    <View>
+      <Text>Login</Text>
+      <TextInput
+        testID="username"
+        placeholder="Username"
+        value={username}
+        onChangeText={text => _setUsername(text)}
+      />
+      <TextInput
+        testID="password"
+        placeholder="Password"
+        value={password}
+        secureTextEntry={true}
+        onChangeText={text => _setPassword(text)}
+      />
+      <TextInput
+        testID="phone"
+        placeholder="Phone"
+        value={phone}
+        keyboardType="numeric"
+        maxLength={10}
+        onChangeText={text => _setPhone(text.replace(/[^0-9]/g, ''))}
+      />
+      <Button
+        title="Submit"
+        testID="btnSubmit"
+        onPress={_onSubmitLogin}
+      />
+    </View>
+  );
+}
+
+export default Login;
+```
+
+Let's start by simulating entering `username`, `password`, `phone` and pressing the `button submit`:
+
+```js
+import React from 'react';
+import { render, fireEvent } from 'react-native-testing-library';
+import Login from './Login';
+
+describe('Login', () => {
+
+  describe('change text login', () => {
+    it('change text username and password', () => {
+      const { getByTestId } = render(<Login />);
+
+      // use fireEvent change value TextInput
+      fireEvent.changeText(getByTestId('username'), 'admin');
+      fireEvent.changeText(getByTestId('password'), 'admin@123');
+
+      // use toEqual check value TextInput
+      expect(getByTestId('username').props.value).toEqual('admin');
+      expect(getByTestId('password').props.value).toEqual('admin@123');
+    });
+
+
+    it('change text phone input ', () => {
+      const { getByTestId } = render(<Login />);
+
+      fireEvent.changeText(getByTestId('phone'), '0123456789');
+
+      expect(getByTestId('phone').props.value).toEqual('0123456789');
+    });
+
+
+    it('change text is string to phone input ', () => {
+      const { getByTestId } = render(<Login />);
+
+      fireEvent.changeText(getByTestId('phone'), 'isstring');
+
+      expect(getByTestId('phone').props.value).toEqual('');
+    });
+
+  });
+
+
+
+  describe('Submit form login', () => {
+
+    it('on submit login', () => {
+      const data = { "password": "123456", "username": "admin@123" }
+      const submitHandler = jest.fn();
+      const { getByTestId } = render(
+
+        // passing prop to Login component
+        <Login login={submitHandler} />
+
+      );
+
+      fireEvent.changeText(getByTestId('username'), 'admin@123');
+      fireEvent.changeText(getByTestId('password'), '123456');
+
+      expect(getByTestId('username').props.value).toEqual('admin@123');
+      expect(getByTestId('password').props.value).toEqual('123456');
+
+      // use fireEvent.press call Button submit
+      fireEvent.press(getByTestId('btnSubmit'));
+
+      // checking ouput data equal input
+      expect(submitHandler).toHaveBeenCalledWith(data);
+    });
+
+  })
+
+});
+```
+
+- `getByTestId` lets us retrieve an element by the `testID prop`. 
+- `fireEvent` lets us fire an event on an element specifically here we want the `changeText` event on the text field, and the press event on the button.
+- `toEqual('')` checking value TextInput when change.
+
+The other thing we want to confirm is that the `login` action is called. We can do this using a Sinon spy. A spy allows us to inspect whether it has been called, and with what arguments.
+
+```js
+// Login.js
+...
+if (login) {
+  login({ username, password });
+}
+...
+```
+
+```js
+// Login.spec.js
+...
+const submitHandler = jest.fn();
+const { getByTestId } = render(
+  <Login login={submitHandler} />
+);
+...
+
+expect(submitHandler).toHaveBeenCalledWith(data);
+```
