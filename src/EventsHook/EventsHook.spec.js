@@ -1,24 +1,27 @@
 import React from 'react';
 import {
-  TouchableOpacity,
   Text,
+  TouchableOpacity,
 } from 'react-native';
 import renderer from 'react-test-renderer';
-import Events from './Events';
+import EventsHook from './EventsHook';
 
-describe('Events', () => {
+describe('EventsHook', () => {
 
-  it('updates counter when clicked', () => {
+  it('calls setCount with count + 1', async () => {
 
-    const inst = renderer.create(<Events />);
+    let inst;
+    renderer.act(async () => {
+      inst = renderer.create(<EventsHook />)
+    });
+
     const button = inst.root.findByType(TouchableOpacity);
     const text = inst.root.findByType(Text);
 
-    expect(inst.root.instance.state.counter).toBe(1);
-
     button.props.onPress();
-    
+
     expect(text.props.children).toBe(2);
-    
+
   });
+
 });
