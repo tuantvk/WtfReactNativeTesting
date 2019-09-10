@@ -469,3 +469,80 @@ This works, but there are a few downsides:
 - If the request takes too long, the test can fail sometimes.
 - Which slows down your whole test suite.
 - If the remote server goes down, your test will fail.
+
+
+## Basics of snapshot testing :racehorse:
+
+Lets setup a basic [Button](src/Button/Button.js) component so that we try out snapshot testing it.
+
+```js
+import React, { useState } from 'react';
+import {
+  TouchableOpacity,
+  Text,
+} from 'react-native';
+
+const Button = ({ label }) => {
+
+  const [disabled, _setDisabled] = useState(false);
+
+  _onSubmit = () => {
+    // Do something...
+
+    _setDisabled(true);
+
+  }
+
+  return (
+    <TouchableOpacity
+      disabled={disabled}
+      onPress={_onSubmit}>
+      <Text>
+        {disabled ? 'Loading...' : label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+export default Button;
+```
+
+Now let’s create the test file [Button.spec.js](src/Button/Button.spec.js)
+
+```js
+...
+
+describe('Rendering', () => {
+  it('should match to snapshot', () => {
+    const component = shallow(<Button label="Submit" />)
+    expect(component).toMatchSnapshot()
+  });
+
+  it('Button renders correctly', () => {
+
+    const tree = renderer.create(<Button />).toJSON();
+    expect(tree).toMatchSnapshot();
+
+  });
+});
+```
+
+Jest will accept both extensions and will append file extension as necessary for auto generated files such as snapshots.
+
+Since this is the first time we run this snapshot test, Jest will create a snapshot file for us inside the folder `__snapshots__`.
+
+<p align="center">
+  <img src="assets/boom.gif" alt="boom" />
+<p>
+
+
+Result test final :zap: :zap:
+
+<p align="center">
+  <img src="assets/final.png" alt="final" />
+<p>
+
+
+## :sparkles: Wrap up
+
+These are few basic ways you can start unit testing your React Native codebase with Jest and Enzyme. They both have great documentation so there is no reason you should not unit test your codebase anymore.
