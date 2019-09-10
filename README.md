@@ -216,7 +216,7 @@ Here's what's going on:
 - `not.toBeNull()` checks that the value is not null, which means that an element with that text was found.
 
 
-## Testing TextInput
+## Testing TextInput :pencil:
 
 I have form [Login.js](src/Login/Login.js):
 
@@ -382,3 +382,90 @@ const { getByTestId } = render(
 
 expect(submitHandler).toHaveBeenCalledWith(data);
 ```
+
+
+## Testing with Lifecycle Methods :hammer:
+
+<p align="center">
+  <img src="assets/lifecycle.gif" alt="lifecycle" />
+<p>
+
+
+Component that loads some data from a service upon mount and displays it, [Lifecycle.js](src/Lifecycle/Lifecycle.spec.js):
+
+```js
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+} from 'react-native';
+
+const NUMBERS = ['one', 'two'];
+
+const Lifecycle = () => {
+
+  const [numbers, _setNumbers] = useState([]);
+
+  // use HOOK
+  useEffect(() => {
+    _setNumbers(NUMBERS);
+  });
+
+  return (
+    <View>
+      {
+        numbers.map((num, index) => (
+          <Text key={index}>{num}</Text>
+        ))
+      }
+    </View>
+  );
+}
+
+export default Lifecycle;
+```
+
+Here's my test:
+
+```js
+import React from 'react';
+import { render } from 'react-native-testing-library';
+import Lifecycle from './Lifecycle';
+
+describe('Lifecycle', () => {
+
+  it('loads number from useEffect', () => {
+    const { queryByText } = render(<Lifecycle />);
+
+    expect(queryByText('one')).not.toBeNull();
+    expect(queryByText('two')).not.toBeNull();
+  });
+
+});
+```
+
+If `useEffect` render after `render()` because the calls to `queryByText()` return null and the text is not found. 
+This is because the test doesn't wait for the service to return data.
+
+How can we fix this ? :bug:
+
+```js
+...
+const { queryByText, debug } = render(<Lifecycle />);
+...
+
+return new Promise((resolve, reject) => {
+  setTimeout(() => {
+    expect(queryByText('one')).not.toBeNull();
+    expect(queryByText('two')).not.toBeNull();
+    resolve();
+  }, 1000);
+});
+```
+
+
+This works, but there are a few downsides:
+
+- If the request takes too long, the test can fail sometimes.
+- Which slows down your whole test suite.
+- If the remote server goes down, your test will fail.
