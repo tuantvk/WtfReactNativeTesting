@@ -536,6 +536,67 @@ Since this is the first time we run this snapshot test, Jest will create a snaps
 <p>
 
 
+## Events Testing
+
+We can either check that the state was updated by accessing it directly through the root instance’s `instance.state` or by checking the rendered text value.
+
+```js
+// Events.js
+import React from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
+
+class Events extends React.Component {
+
+  state = {
+    counter: 1,
+  }
+
+  _setCounter = () => {
+    this.setState(prevState => (
+      { counter: prevState.counter + 1 }
+    ));
+  }
+
+  render() {
+    const { counter } = this.state;
+    return (
+      <View>
+        <TouchableOpacity onPress={this._setCounter}>
+          <Text>{counter}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+}
+
+export default Events;
+```
+
+```js
+// Events.spec.js
+...
+
+it('updates counter when clicked', () => {
+
+  const inst = renderer.create(<Events />);
+  const button = inst.root.findByType(TouchableOpacity);
+  const text = inst.root.findByType(Text);
+
+  expect(inst.root.instance.state.counter).toBe(1);
+
+  button.props.onPress();
+  
+  expect(text.props.children).toBe(2);
+});
+```
+
+We render the `<Events>`, we can use `findByType` to find the `TouchableOpacity` and call its onPress function.
+
+
 Result test final :zap: :zap:
 
 <p align="center">
