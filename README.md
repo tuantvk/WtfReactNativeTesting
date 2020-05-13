@@ -19,6 +19,23 @@
   <img src="assets/testing-app.png" alt="testing-app" />
 <p>
 
+
+
+## Table Contents
+
+1. [ Setting. ](#setting)
+2. [ Hello world testing ](#hello-world-testing)
+3. [ Text and Props Testing ](#text-and-props-testing)
+4. [ TextInput Testing ](#textinput-testing)
+5. [ Lifecycle Methods Testing ](#lifecycle-methods-testing)
+6. [ Basics of snapshot testing ](#basics-of-snapshot-testing)
+7. [ Events Testing ](#events-testing)
+8. [ Events Hook Testing ](#events-hook-testing)
+9. [ Enzyme Members Testing](#enzyme-members-testing)
+10. [ Wrap up ](#wrap-up)
+
+
+
 ## What are we unit testing exactly ? :rotating_light:
 
 We're using **"unit testing"** to refer to tests of functions and plain JavaScript objects, independent of the React Native framework. This means that we aren't testing any components that rely on React Native.
@@ -33,6 +50,7 @@ For example, a unit could be individual methods and functions in classes or real
 
 
 These test are written using testing frameworks and for this article i will be using [Jest](https://jestjs.io/), javascript testing framework together with [Enzyme](https://airbnb.io/enzyme/) and [React Native Testing Library](https://github.com/callstack/react-native-testing-library).
+
 
 
 ## Setting
@@ -157,7 +175,7 @@ describe('Hello', () => {
 Run test with `yarn test`
 
 
-## Testing Text and Props
+## Text and Props Testing
 
 Create a file [PassingProps.js](src/PassingProps/PassingProps.js) and enter the following:
 
@@ -216,7 +234,7 @@ Here's what's going on:
 - `not.toBeNull()` checks that the value is not null, which means that an element with that text was found.
 
 
-## Testing TextInput :pencil:
+## TextInput Testing :pencil:
 
 I have form [Login.js](src/Login/Login.js):
 
@@ -384,7 +402,7 @@ expect(submitHandler).toHaveBeenCalledWith(data);
 ```
 
 
-## Testing with Lifecycle Methods :hammer:
+## Lifecycle Methods Testing :hammer:
 
 <p align="center">
   <img src="assets/lifecycle.gif" alt="lifecycle" />
@@ -658,6 +676,85 @@ describe('EventsHook', () => {
 
 });
 ```
+
+
+## Enzyme Members Testing
+
+
+<p align="center">
+  <img src="assets/enzyme.png" alt="enzyme" />
+<p>
+
+
+This is example for use **Enzyme** for testing React Native Component.
+I have component [Members.js](src/Members/Members.js) and enter the following contents:
+
+```js
+// Members.js
+import React from 'react';
+import { View, Text } from 'react-native';
+
+
+const Members = ({ members }) => {
+
+    return (
+        <View>
+            {members.map(member => (
+                <Text key={member.id} testID="memberDetail">{member.name}</Text>
+            ))}
+        </View>
+    )
+}
+
+
+export default Members;
+```
+
+Members Component receive a props **members** include `id` key and `name` key, render each item member with `testID="memberDetail"`
+
+```js
+// Members.spec.js
+import React from 'react';
+import { shallow } from 'enzyme';
+import toJson from 'enzyme-to-json';
+
+import Members from './Members';
+
+const members = [{ id: 1, name: 'Daphne', }, { id: 2, name: 'Margret', }];
+
+
+describe('Members Component', () => {
+    it('should render without issues', () => {
+        const component = shallow(
+            <Members members={members} />
+        );
+
+        expect(component.length).toBe(1);
+        expect(toJson(component)).toMatchSnapshot();
+    });
+
+    it('should render all item in members', () => {
+        const wrapper = shallow(
+            <Members members={members} />
+        );
+
+        expect(wrapper.find({ testID: 'memberDetail' }).length).toBe(2);
+    });
+
+    it('should render correct names', () => {
+        const wrapper = shallow(
+            <Members members={members} />
+        );
+
+        wrapper.find({ testID: 'memberDetail' }).forEach((node, index) => {
+            expect(node.props().children).toBe(members[index].name);
+        });
+    });
+
+});
+```
+
+
 
 Result test final :zap: :zap:
 
