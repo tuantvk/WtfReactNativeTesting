@@ -35,6 +35,8 @@
 10. [ Wrap up ](#wrap-up)
 
 
+### More examples: [Elk - Documents for React Native testing](https://elk.netlify.app/)
+
 
 ## What are we unit testing exactly ? :rotating_light:
 
