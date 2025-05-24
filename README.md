@@ -35,9 +35,6 @@
 10. [ Wrap up ](#wrap-up)
 
 
-### More examples: [Elk - Documents for React Native testing](https://elk.netlify.app/)
-
-
 ## What are we unit testing exactly ? :rotating_light:
 
 We're using **"unit testing"** to refer to tests of functions and plain JavaScript objects, independent of the React Native framework. This means that we aren't testing any components that rely on React Native.
